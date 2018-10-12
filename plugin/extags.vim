@@ -24,6 +24,7 @@ endif
 
 " commands {{{1
 command! -n=1 -complete=customlist,ex#compl_by_symbol TSelect call extags#select('<args>')
+command! -n=1 -complete=customlist,ex#compl_by_symbol TS call extags#select('<args>')
 command! EXTagsCWord call extags#select(expand('<cword>'))
 
 command! EXTagsToggle call extags#toggle_window()
@@ -38,11 +39,17 @@ if has('gui_running')
 else
     call extags#register_hotkey( 2  , 1, '<leader><ESC>'   , ":EXTagsClose<CR>"                         , 'Close window.' )
 endif
-call extags#register_hotkey( 3  , 1, '<Space>'         , ":call extags#toggle_zoom()<CR>"           , 'Zoom in/out project window.' )
+" call extags#register_hotkey( 3  , 1, '<Space>'         , ":call extags#toggle_zoom()<CR>"           , 'Zoom in/out project window.' )
+call extags#register_hotkey( 3  , 1, 'z'               , ":call extags#toggle_zoom()<CR>"           , 'Zoom in/out project window.' )
 call extags#register_hotkey( 4  , 1, '<CR>'            , ":call extags#confirm_select('')<CR>"      , 'Go to the select result.' )
 call extags#register_hotkey( 5  , 1, '<2-LeftMouse>'   , ":call extags#confirm_select('')<CR>"      , 'Go to the select result.' )
+
+
 call extags#register_hotkey( 6  , 1, '<S-CR>'          , ":call extags#confirm_select('shift')<CR>" , 'Go to the select result in split window.' )
 call extags#register_hotkey( 7  , 1, '<S-2-LeftMouse>' , ":call extags#confirm_select('shift')<CR>" , 'Go to the select result in split window.' )
+call extags#register_hotkey( 100, 0, '<leader>ts', ":EXTagsToggle<CR>", 'Toggle tag select window.' )
+call extags#register_hotkey( 101, 0, '<leader>]', ":EXTagsCWord<CR>", 'Tag select current word.' )
+call extags#register_hotkey( 102, 0, '<F12>', ":EXTagsCWord<CR>", 'Tag select current word.' )
 "}}}
 
 call ex#register_plugin( 'extags', { 'actions': ['autoclose'] } )

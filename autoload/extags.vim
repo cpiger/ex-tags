@@ -59,7 +59,7 @@ function extags#init_buffer()
 
     if line('$') <= 1 && g:ex_tags_enable_help
         silent call append ( 0, s:help_text )
-        silent exec '$d'
+        silent exec '$d _'
     endif
 endfunction
 
@@ -178,30 +178,57 @@ function extags#confirm_select(modifier)
     " file jump
     let filename = fnamemodify(s:tag_list[cur_tagidx-1].filename,":p")
     let filename = fnameescape(filename)
-    if bufnr('%') != bufnr(filename)
-        exe ' silent e ' . filename
-    endif
-
-    " cursor jump
-    let ex_cmd = s:tag_list[cur_tagidx-1].cmd
-    try
-        silent exe . ex_cmd
-    catch /^Vim\%((\a\+)\)\=:E/
-        " if ex_cmd is not digital, try jump again manual
-        if match( ex_cmd, '^\/\^' ) != -1
-            let pattern = strpart(ex_cmd, 2, strlen(ex_cmd)-4)
-            let pattern = '\V\^' . pattern . (pattern[len(pattern)-1] == '$' ? '\$' : '')
-            if search(pattern, 'w') == 0
-                call ex#warning('search pattern not found: ' . pattern)
-                return
-            endif
+    if a:modifier == 'shift'
+        exe 'silent pedit ' . filename
+        silent! wincmd P
+        if &previewwindow
+            let ex_cmd = s:tag_list[cur_tagidx-1].cmd
+            try
+                silent exe . ex_cmd
+            catch /^Vim\%((\a\+)\)\=:E/
+                " if ex_cmd is not digital, try jump again manual
+                if match( ex_cmd, '^\/\^' ) != -1
+                    let pattern = strpart(ex_cmd, 2, strlen(ex_cmd)-4)
+                    let pattern = '\V\^' . pattern . (pattern[len(pattern)-1] == '$' ? '\$' : '')
+                    if search(pattern, 'w') == 0
+                        call ex#warning('search pattern not found: ' . pattern)
+                        return
+                    endif
+                endif
+            endtry
+            call ex#hl#target_line(line('.'))
         endif
-    endtry
+        " go back to tags window
+        exe 'normal! zz'
+        call ex#hl#target_line(line('.'))
+        call ex#window#goto_plugin_window()
+    else
 
-    " go back to tags window
-    exe 'normal! zz'
-    call ex#hl#target_line(line('.'))
-    call ex#window#goto_plugin_window()
+        if bufnr('%') != bufnr(filename)
+            exe ' silent e ' . filename
+        endif
+
+        " cursor jump
+        let ex_cmd = s:tag_list[cur_tagidx-1].cmd
+        try
+        silent exe ex_cmd
+        catch /^Vim\%((\a\+)\)\=:E/
+            " if ex_cmd is not digital, try jump again manual
+            if match( ex_cmd, '^\/\^' ) != -1
+                let pattern = strpart(ex_cmd, 2, strlen(ex_cmd)-4)
+                let pattern = '\V\^' . pattern . (pattern[len(pattern)-1] == '$' ? '\$' : '')
+                if search(pattern, 'w') == 0
+                    call ex#warning('search pattern not found: ' . pattern)
+                    return
+                endif
+            endif
+        endtry
+
+        " go back to tags window
+        exe 'normal! zz'
+        call ex#hl#target_line(line('.'))
+        call ex#window#goto_plugin_window()
+    endif
 endfunction
 
 " extags#select {{{2
@@ -299,7 +326,7 @@ function extags#select( tag )
     " add online help 
     if g:ex_tags_enable_help
         silent call append ( 0, s:help_text )
-        silent exec '$d'
+        silent exec '$d _'
         let start_line = len(s:help_text)
     else
         let start_line = 0
